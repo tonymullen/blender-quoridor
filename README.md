@@ -1,1 +1,1 @@
-A multi-player Quoridor game build with Blender game engine
+A multi-player [Quoridor](https://en.wikipedia.org/wiki/Quoridor) game build with Blender game engine
