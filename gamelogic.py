@@ -1,8 +1,9 @@
 # This script must be assigned to a python controller
 # where it can access the object that owns it and the sensors/actuators that it connects to.
 
-import bge
+from bge import logic as GL
 import socket
+
 
 # support for Vector(), Matrix() types and advanced functions like Matrix.Scale(...) and Matrix.Rotation(...)
 # import mathutils
@@ -10,90 +11,80 @@ import socket
 # for functions like getWindowWidth(), getWindowHeight()
 # import Rasterizer
 
+
 player = 2
 players = ["RedPlayer", "GreenPlayer","YellowPlayer","BluePlayer"]
 
-def main():
-    global player 
-    print(player)
-    my_player = players[player]
-    print(my_player)
-    my_actuators = {}
-    
-    cont = bge.logic.getCurrentController()
 
-    # The KX_GameObject that owns this controller.
+def move(direction, objectName):
+    result = getattr(GL.players[objectName], direction)()
+    print(result)
+
+def main():
+    scene = GL.getCurrentScene()
+    for obj in scene.objects:
+        if ('makeWall' in obj.getPropertyNames()):
+            obj.setVisible(0)
+    
+    global player 
+    the_player_name = players[player]
+    the_actuators = {}
+    cont = GL.getCurrentController()
+    mouse = cont.sensors["mouse"]
     own = cont.owner
     
-    # for scripts that deal with spacial logic
-    own_pos = own.worldPosition
+    #own_pos = own.worldPosition
 
-    # Some example functions, remove to write your own script.
-    # check for a positive sensor, will run on any object without errors.
-    print("Logic info for KX_GameObject", own.name)
     input = False
     
-#    for sens in cont.sensors:
-#        # The sensor can be on another object, we may want to use it
-#        own_sens = sens.owner
-#        print("    sensor:", sens.name, end=" ")
-#        if sens.positive:
-#            print("(true)")
-#            input = True
-#        else:
-#            print("(false)")
-    
-    print(cont.actuators)
     for actu in cont.actuators:
-        # The actuator can be on another object, we may want to use it
-        if (actu.owner.name == my_player):
-            my_actuators[actu.name] = actu
+        if (actu.owner.name == the_player_name):
+            the_actuators[actu.name] = actu
             own_actu = actu.owner
-            print("    owner:", actu.owner)
-            print("    actuator:", actu.name)
 
-    print(my_actuators)
-    
-        # This runs the actuator or turns it off
-        # note that actuators will continue to run unless explicitly turned off.
-#        if input:
-#            cont.activate(actu)
-#        else:
-#            cont.deactivate(actu)
-
-    # Its also good practice to get sensors and actuators by name
-    # rather then index so any changes to their order wont break the script.
-
-    # sens_key = cont.sensors["key_sensor"]
     
     forward = cont.sensors['forward']
     back    = cont.sensors['back']
     right   = cont.sensors['right']
     left    = cont.sensors['left']
-    print(forward.tap)
     if forward.positive:
-        cont.activate(my_actuators['forward'])
+        the_actuators['move'].dLoc = [0, 1, 0]
+        cont.activate(the_actuators['move'])
+        move('forward', the_player_name)
     else:
-        cont.deactivate(my_actuators['forward'])
+        cont.deactivate(the_actuators['move'])
     if back.positive:
-        cont.activate(my_actuators['back'])
+        the_actuators['move'].dLoc = [0, -1, 0]
+        cont.activate(the_actuators['move'])
+        move('back', the_player_name)
     else:
-        cont.deactivate(my_actuators['back'])
+        cont.deactivate(the_actuators['move'])
     if right.positive:
-        cont.activate(my_actuators['right'])
+        the_actuators['move'].dLoc = [1, 0, 0]
+        cont.activate(the_actuators['move'])
+        move('right', the_player_name)
     else:
-        cont.deactivate(my_actuators['right'])
+        cont.deactivate(the_actuators['move'])
     if left.positive:
-        cont.activate(my_actuators['left'])
+        the_actuators['move'].dLoc = [-1, 0, 0]
+        cont.activate(the_actuators['move'])
+        move('left', the_player_name)
     else:
-        cont.deactivate(my_actuators['left'])
+        cont.deactivate(the_actuators['move'])
         
-  
+    if mouse.positive:
+        hit_object = mouse.hitObject
+        print(mouse.hitPosition)
+        print(GL.board)
+        hit_object.setVisible(1)
+        
+            
+    #   hit_object.setVisible(0)
         
     # actu_motion = cont.actuators["motion"]
 
     # Loop through all other objects in the scene
-    #sce = bge.logic.getCurrentScene()
+    #sce = GL.getCurrentScene()
     #print("Scene Objects:", sce.name)
     #for ob in sce.objects:
     #    print("   ", ob.name, ob.worldPosition)
@@ -111,3 +102,4 @@ def main():
     """
 
 main()
+
